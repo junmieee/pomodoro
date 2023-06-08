@@ -45,26 +45,43 @@ const Timer: React.FC = () => {
     const handleCompleteRound = () => {
         if (roundsCompleted === 3) {
             setRoundsCompleted(0);
-            setGoalsCompleted((prevGoalsCompleted) => prevGoalsCompleted + 1);
+            if (goalsCompleted === 12) {
+                setRoundsCompleted(0);
+                setGoalsCompleted(0)
+            } else {
+                setGoalsCompleted((prev) => prev + 1);
+            }
         } else {
-            setRoundsCompleted((prevRoundsCompleted) => prevRoundsCompleted + 1);
+            setRoundsCompleted((prev) => prev + 1);
         }
         setTimer(25 * 60);
         setIsPlaying(false);
     };
 
+    const timerVariants = {
+        initial: { opacity: 0, scale: 0.5 },
+        animate: { opacity: 1, scale: 1 },
+    };
+
     const buttonVariants = {
-        playing: { scale: 1.2 },
-        paused: { scale: 1 },
+        initial: { scale: 1 },
+        animate: { scale: 1.2 },
     };
 
     return (
         <div>
-            <div>{formatTime(timer)}</div>
+            <motion.div
+                variants={timerVariants}
+                initial="initial"
+                animate="animate"
+                key={timer}
+            >
+                {formatTime(timer)}
+            </motion.div>
             <motion.button
                 onClick={handleToggle}
                 variants={buttonVariants}
-                animate={isPlaying ? 'playing' : 'paused'}
+                whileTap={{ scale: 0.9 }}
             >
                 {isPlaying ? 'Pause' : 'Start'}
             </motion.button>
