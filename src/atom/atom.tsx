@@ -3,7 +3,7 @@ import { atom } from 'recoil';
 // 타이머 상태를 나타내는 atom
 export const timerState = atom<number>({
     key: 'timerState',
-    default: 25 * 60, // 25분을 초 단위로 표현
+    default: 25 * 60, // 25분을 초 단위로
 });
 
 // 완료된 라운드 수를 나타내는 atom
@@ -22,4 +22,10 @@ export const goalsCompletedState = atom<number>({
 export const goalState = atom<number>({
     key: 'goalState',
     default: 0,
+});
+
+// 배경색을 나타내는 atom
+export const bgColorState = atom<string>({
+    key: 'bgColorState',
+    default: '',
 });
