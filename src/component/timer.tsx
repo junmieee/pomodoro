@@ -4,8 +4,8 @@ import { timerState, roundsCompletedState, goalsCompletedState } from '../atom/a
 import { motion, PanInfo, useAnimation, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer'
-import { useCountdown } from 'react-countdown-circle-timer'
-
+import SlideBoxes from './Slider.tsx';
+import FormatTime from './FormatTime.tsx';
 
 
 const CardWrapper = styled(motion.div)`
@@ -13,6 +13,7 @@ const CardWrapper = styled(motion.div)`
   gap: 20px;
   justify-content: center;
   align-items: center;
+
 `;
 
 const TimeCard = styled.div`
@@ -47,7 +48,7 @@ const Colon = styled.p`
     color: #485460;
 `
 
-const Text = styled.div`
+const TextWrapper = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -73,129 +74,111 @@ const CountdownCircleTimerWrapper = styled.div`
 `
 
 
-const SliderContainer = styled(motion.div)`
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  overflow: hidden;
-  margin: 10px 0;
-  padding: 10px;
+const RoundCircle = styled(motion.div)`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: ${({ completed }) => (completed ? '#BD4235' : 'transparent')};
+  border: 2px solid #BD4235;
+  margin: 5px;
 `;
 
-const SliderWrapper = styled(motion.div)`
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+const GoalWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;;
+    align-items: center;
+  
+`
+
+const GoalInfo = styled.span`
+    color: #fff;
+    font-size: 25px;
+    font-weight: bold;
+    opacity: 0.5;
 `;
 
-const SliderBox = styled(motion.div) <{ selectedTimer }>`
-  min-width: 70px;
-  border-radius: 5px;
-  height: 45px;
-  /* background-color: #FE5858; */
-  background-color: ${(props) => props.selectedTimer ? '#fff' : '#FE5858'};
-
-  border: 2px solid #fff;
-  margin: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  p {
-      font-size: 30px;
-      font-weight: bold;
-     color: ${(props) => props.selectedTimer ? '#FE5858' : '#fff'};
-  }
+const GoalText = styled.span`
+ color: #fff;
+    font-size: 20px;
+    font-weight: bold;
 `;
 
 
-const boxVariants = {
-    entry: (back: boolean) => ({
-        x: back ? -500 : 500,
-        opacity: 0,
-        scale: 0
-    }),
-    center: {
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        transition: { duration: 0.5 }
-    },
-    exit: (back: boolean) => ({
-        x: back ? 500 : -500,
-        opacity: 0,
-        scale: 0,
-        transition: { duration: 0.5 }
-    })
-};
-
-
-const BoxVariants = {
-    normal: {
-        scale: 1,
-    },
-    hover: {
-        scale: 1.3,
-        transition: {
-            //bouncing 방지
-            type: "tween",
-            delay: 0.3,
-            duration: 0.2,
-        },
-    },
-};
-
-
-const rowVariants = {
-    hidden: (right: number) => {
-        return {
-            x: right === 1 ? window.innerWidth + 5 : -window.innerWidth - 5,
-        };
-    },
-    visible: {
-        x: 0,
-        y: 0,
-    },
-    exit: (right: number) => {
-        return {
-            x: right === 1 ? -window.innerWidth - 5 : window.innerWidth + 5,
-        };
-    },
-};
+const GoalInput = styled.input`
+    width: 35px;
+    height: 30px;
+    border-radius: 10px;
+    border: none;
+    
+`
 
 
 const Timer: React.FC = () => {
     const [timer, setTimer] = useRecoilState(timerState);
     const [selectedTimer, setSelectedTimer] = useState(25);
+    const [goalInputValue, setGoalInputValue] = useState("");
+    const [showCongrats, setShowCongrats] = useState(false);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const roundsCompleted = useRecoilValue(roundsCompletedState);
-    const goalsCompleted = useRecoilValue(goalsCompletedState);
     const setRoundsCompleted = useSetRecoilState(roundsCompletedState);
+    const goalsCompleted = useRecoilValue(goalsCompletedState);
     const setGoalsCompleted = useSetRecoilState(goalsCompletedState);
     const circleAnimation = useAnimation();
 
+    // useEffect(() => {
+    //     setTimer(selectedTimer * 60);
+    //     if (isPlaying && timer > 0) {
+    //         circleAnimation.start({
+    //             opacity: 1,
+    //             rotate: -90,
+    //             transition: { duration: timer, ease: 'linear' },
+    //         });
+    //     }
+    // }, [selectedTimer, isPlaying, timer]);
 
-
-    useEffect(() => {
-        if (isPlaying && timer > 0) {
-            circleAnimation.start({
-                opacity: 1,
-                rotate: -90,
-                transition: { duration: timer, ease: 'linear' },
-            });
-        } else {
-            circleAnimation.stop();
-        }
-    }, [isPlaying, timer, circleAnimation]);
+    // useEffect(() => {
+    //     if (isPlaying && timer > 0) {
+    //         circleAnimation.start({
+    //             opacity: 1,
+    //             rotate: -90,
+    //             transition: { duration: timer, ease: 'linear' },
+    //         });
+    //     } else {
+    //         circleAnimation.stop();
+    //     }
+    // }, [isPlaying, timer, circleAnimation]);
 
     const handleToggle = () => {
         setIsPlaying((prev) => !prev);
     };
 
-    const handleReset = () => {
-        setIsPlaying(false);
-        setTimer(25 * 60);
+    const handleGoalInputChange = (event) => {
+        setGoalInputValue(event.target.value);
     };
+
+    // const handleSetGoalCompleted = () => {
+    //     const newGoalsCompleted = parseInt(goalInputValue, 10);
+    //     if (!isNaN(newGoalsCompleted)) {
+    //         setGoalsCompleted(newGoalsCompleted);
+    //     }
+    // };
+
+    const handleTimerSelection = (time: number) => {
+        setTimer(time * 60);
+        setSelectedTimer(time);
+        if (isPlaying && timer > 0) {
+            circleAnimation.start({
+                opacity: 0.8,
+                rotate: -360,
+                transition: { duration: timer, ease: 'linear' },
+            });
+        }
+    }
+
+
+
 
     useEffect(() => {
         let interval: NodeJS.Timeout | undefined;
@@ -213,66 +196,11 @@ const Timer: React.FC = () => {
         };
     }, [isPlaying, timer]);
 
-    const formatTime = (timeInSeconds: number): JSX.Element => {
-        const minutes = Math.floor(timeInSeconds / 60).toString().padStart(2, '0');
-        const seconds = (timeInSeconds % 60).toString().padStart(2, '0');
-        return (
-            <>
-                <CardWrapper>
-                    <motion.div
-                        variants={timerVariants}
-                        initial="initial"
-                        animate="animate"
-                        key={minutes}
-                    >
-                        <TimeCard>
-                            <motion.div
-                                style={{ color: '#000' }}
-                                key={minutes}
-                            >
-                                <TimeNumber
-                                    variants={timerVariants}
-                                    initial="initial"
-                                    animate="animate"
-                                    key={minutes}
-                                >
-                                    {minutes}
-                                </TimeNumber>
-                            </motion.div>
-                        </TimeCard>
-                    </motion.div>
-                    <Colon>:</Colon>
-                    <motion.div
-                        variants={timerVariants}
-                        initial="initial"
-                        animate="animate"
-                        key={seconds}
-                    >
-                        <TimeCard>
-                            <motion.div
-                                style={{ color: '#000' }}
-                                key={seconds}
-                            >
-                                <TimeNumber
-                                    variants={timerVariants}
-                                    initial="initial"
-                                    animate="animate"
-                                    key={minutes}
-                                >
-                                    {seconds}
-                                </TimeNumber>
-                            </motion.div>
-                        </TimeCard>
-                    </motion.div>
-                </CardWrapper>
-            </>
-        );
-    };
 
     const handleCompleteRound = () => {
         if (roundsCompleted === 3) {
             setRoundsCompleted(0);
-            if (goalsCompleted === 5) {
+            if (goalsCompleted === goalInputValue) {
                 setRoundsCompleted(0);
                 setGoalsCompleted(0);
             } else {
@@ -283,48 +211,28 @@ const Timer: React.FC = () => {
         }
         setTimer(25 * 60);
         setIsPlaying(false);
+        setShowCongrats(true);
+        setTimeout(() => {
+            setShowCongrats(false);
+        }, 2000); // 축하 효과가 보여지는 시간 (2초)
     };
 
-    const renderSlideBoxes = () => {
-        const timerOptions = [15, 20, 25, 30, 35, 40, 45, 50];
+    const renderRoundCircles = () => {
+        const maxRounds = 3;
+        const completedRounds = roundsCompleted;
 
-
-        const handleTimerSelection = (time: number) => {
-            setTimer(time * 60);
-            setSelectedTimer(time);
-        };
-
-        return timerOptions.map((time, i) => (
-            <div key={i}>
-                <motion.div
-                    key={time}
-                    onClick={() => handleTimerSelection(time)}
-                    whileTap={{ scale: 0.9 }}
-                    drag="x"
-                    variants={boxVariants}
-                    initial="entry"
-                    animate="center"
-                    exit="exit"
-                // transition={{
-                //     x: { type: "spring", stiffness: 300, damping: 30 },
-                //     opacity: { duration: 0.2 }
-                // }}
-                >
-                    <SliderBox selectedTimer={selectedTimer === time}>
-                        <p>{time}</p>
-                    </SliderBox>
-                </motion.div>
-
-            </div>
-
-        ));
+        return (
+            <CardWrapper>
+                {Array.from({ length: maxRounds }).map((_, index) => (
+                    <RoundCircle
+                        key={index}
+                        completed={index < completedRounds || index >= maxRounds}
+                    />
+                ))}
+            </CardWrapper>
+        );
     };
 
-
-    const timerVariants = {
-        initial: { opacity: 0, scale: 0.5 },
-        animate: { opacity: 1, scale: 1 },
-    };
 
     const buttonVariants = {
         initial: { scale: 1 },
@@ -334,15 +242,44 @@ const Timer: React.FC = () => {
     return (
 
         <div>
-            {formatTime(timer)}
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '300px', margin: '0 auto' }}>
-                {renderSlideBoxes()}
-            </div>
+            {showCongrats && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0 }}
+                >
+                    <svg
+                        width="100"
+                        height="100"
+                        viewBox="0 0 100 100"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="yellow"
+                            strokeWidth="4"
+                            stroke="gold"
+                        />
+                        <text x="30" y="55" fontSize="28" fontWeight="bold">
+                            Congrats!
+                        </text>
+                    </svg>
+                </motion.div>
+            )}
+            <FormatTime timeInSeconds={timer} setIsPlaying={setIsPlaying} setTimer={setTimer} />
+            <SlideBoxes
+                timerOptions={[15, 20, 25, 30, 35, 40, 45, 50]}
+                selectedTimer={selectedTimer}
+                handleTimerSelection={handleTimerSelection}
+
+            />
             <CountdownCircleTimerWrapper>
                 <CountdownCircleTimer
                     isPlaying={isPlaying}
                     duration={Number(timer)}
-                    colors={[['#fff']]}
+                    colors={'#fff'}
                     trailColor="#FE5858"
                     strokeWidth={6}
                     strokeLinecap="round"
@@ -350,7 +287,6 @@ const Timer: React.FC = () => {
                     onComplete={handleCompleteRound}
                 >
                     {() => (
-
                         <Button
                             onClick={handleToggle}
                             variants={buttonVariants}
@@ -388,14 +324,19 @@ const Timer: React.FC = () => {
                     )}
                 </CountdownCircleTimer>
             </CountdownCircleTimerWrapper>
+            <TextWrapper>
+                <CardWrapper>{renderRoundCircles()}</CardWrapper>
+                <GoalWrapper>
+                    <GoalInfo>
+                        {goalsCompleted} / 4
+                        {/* <GoalInput value={goalInputValue} onChange={handleGoalInputChange} />
+                        <button >Set Goal Completed</button> */}
+                    </GoalInfo>
+                    <GoalText>GOAL</GoalText>
+                </GoalWrapper>
 
+            </TextWrapper>
 
-            <Text>
-                <div>Rounds Completed: {roundsCompleted}</div>
-                <div>Goals Completed: {goalsCompleted}</div>
-            </Text>
-
-            <ResetButton onClick={handleReset}>Reset</ResetButton>
         </div>
     );
 };
