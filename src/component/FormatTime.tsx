@@ -36,12 +36,6 @@ const TimeNumber = styled(motion.div)`
   font-weight: bold;
 `;
 
-// const Colon = styled.p`
-//   font-weight: bold;
-//   font-size: 50px;
-//   color: #485460;
-// `;
-
 const ColonWrapper = styled.div`
     display: flex;
     flex-direction: column;
@@ -56,7 +50,6 @@ const Colon = styled.div`
     opacity: 0.4;
 
 `
-
 
 const IconWrapper = styled.div`
     display: flex;

@@ -71,6 +71,15 @@ a {
   text-decoration:none;
   color:inherit;
 }
+
+.canvas {
+  height: 100vh;
+  left: 0px;
+  pointer-events: none;
+  position: fixed;
+  top: 0px;
+  width: 100vw;
+}
 `;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { timerState, roundsCompletedState, goalsCompletedState } from '../atom/atom.tsx';
 import { motion, PanInfo, useAnimation, AnimatePresence } from 'framer-motion';
@@ -6,179 +6,39 @@ import styled from 'styled-components';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer'
 import SlideBoxes from './Slider.tsx';
 import FormatTime from './FormatTime.tsx';
-
-
-const CardWrapper = styled(motion.div)`
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  align-items: center;
-
-`;
-
-const TimeCard = styled.div`
-  width: 180px;
-  height: 250px;
-  background-color: #fff;
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-`;
-
-const TimeNumber = styled(motion.div)`
-  font-size: 80px;
-  color: #FE5858;
-  font-weight: bold;
-`;
-
-const Button = styled(motion.div)`
-    display: flex;
-    width: 90px;
-    height: 90px;
-    margin: 0 auto;
-    color: black;
-    opacity: 0.4;
-`
-
-const Colon = styled.p`
-    font-weight: bold;
-    font-size: 50px;
-    color: #485460;
-`
-
-const TextWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    div {
-        font-weight: 300;
-        font-size: 30px;
-        margin-bottom: 10px;
-    }
-`;
-
-const ResetButton = styled.button`
-    
-`
-
-const CountdownCircleTimerWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px;
-
-`
-
-
-const RoundCircle = styled(motion.div)`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: ${({ completed }) => (completed ? '#BD4235' : 'transparent')};
-  border: 2px solid #BD4235;
-  margin: 5px;
-`;
-
-const GoalWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    justify-content: center;;
-    align-items: center;
-  
-`
-
-const GoalInfo = styled.span`
-    color: #fff;
-    font-size: 25px;
-    font-weight: bold;
-    opacity: 0.5;
-`;
-
-const GoalText = styled.span`
- color: #fff;
-    font-size: 20px;
-    font-weight: bold;
-`;
-
-
-const GoalInput = styled.input`
-    width: 35px;
-    height: 30px;
-    border-radius: 10px;
-    border: none;
-    
-`
-
+import { CreateTypes } from "canvas-confetti";
+import ReactCanvasConfetti from './Canvas/Canvas.tsx';
+import {
+    CardWrapper,
+    Button,
+    TextWrapper,
+    CountdownCircleTimerWrapper,
+    RoundCircle,
+    GoalWrapper,
+    GoalInfo,
+    GoalText
+} from './timerStyle.ts';
 
 const Timer: React.FC = () => {
     const [timer, setTimer] = useRecoilState(timerState);
     const [selectedTimer, setSelectedTimer] = useState(25);
     const [goalInputValue, setGoalInputValue] = useState("");
-    const [showCongrats, setShowCongrats] = useState(false);
 
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPlaying, setIsPlaying] = useState<boolean>(false)
     const roundsCompleted = useRecoilValue(roundsCompletedState);
     const setRoundsCompleted = useSetRecoilState(roundsCompletedState);
     const goalsCompleted = useRecoilValue(goalsCompletedState);
     const setGoalsCompleted = useSetRecoilState(goalsCompletedState);
-    const circleAnimation = useAnimation();
 
-    // useEffect(() => {
-    //     setTimer(selectedTimer * 60);
-    //     if (isPlaying && timer > 0) {
-    //         circleAnimation.start({
-    //             opacity: 1,
-    //             rotate: -90,
-    //             transition: { duration: timer, ease: 'linear' },
-    //         });
-    //     }
-    // }, [selectedTimer, isPlaying, timer]);
+    const isAnimationEnabledRef = useRef(false);
+    const animationInstanceRef = useRef<CreateTypes | null>(null);
 
-    // useEffect(() => {
-    //     if (isPlaying && timer > 0) {
-    //         circleAnimation.start({
-    //             opacity: 1,
-    //             rotate: -90,
-    //             transition: { duration: timer, ease: 'linear' },
-    //         });
-    //     } else {
-    //         circleAnimation.stop();
-    //     }
-    // }, [isPlaying, timer, circleAnimation]);
 
-    const handleToggle = () => {
-        setIsPlaying((prev) => !prev);
-    };
-
-    const handleGoalInputChange = (event) => {
-        setGoalInputValue(event.target.value);
-    };
-
-    // const handleSetGoalCompleted = () => {
-    //     const newGoalsCompleted = parseInt(goalInputValue, 10);
-    //     if (!isNaN(newGoalsCompleted)) {
-    //         setGoalsCompleted(newGoalsCompleted);
-    //     }
-    // };
-
-    const handleTimerSelection = (time: number) => {
-        setTimer(time * 60);
-        setSelectedTimer(time);
-        if (isPlaying && timer > 0) {
-            circleAnimation.start({
-                opacity: 0.8,
-                rotate: -360,
-                transition: { duration: timer, ease: 'linear' },
-            });
+    useEffect(() => {
+        if (roundsCompleted > 0) {
+            handlerFire();
         }
-    }
-
-
-
+    }, [roundsCompleted]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout | undefined;
@@ -196,6 +56,90 @@ const Timer: React.FC = () => {
         };
     }, [isPlaying, timer]);
 
+    const makeShot = (particleRatio: number, opts: object) => {
+        animationInstanceRef.current &&
+            animationInstanceRef.current({
+                ...opts,
+                origin: { y: 0.8 },
+                particleCount: Math.floor(200 * particleRatio),
+            });
+    };
+
+    const fire = () => {
+        makeShot(0.3, {
+            spread: 26,
+            startVelocity: 55,
+        });
+        makeShot(0.4, {
+            spread: 20,
+        });
+
+        makeShot(0.5, {
+            spread: 100,
+            decay: 0.91,
+            scalar: 0.8,
+        });
+
+        makeShot(0.7, {
+            spread: 120,
+            startVelocity: 25,
+            decay: 0.92,
+            scalar: 1.2,
+        });
+
+        makeShot(0.7, {
+            spread: 120,
+            startVelocity: 45,
+            gravity: 0.2,
+        });
+        makeShot(0.7, {
+            spread: 150,
+            startVelocity: 95,
+            gravity: 0.2,
+        });
+        makeShot(0.7, {
+            spread: 150,
+            startVelocity: 95,
+            gravity: 0.2,
+        });
+    };
+
+    const handlerFire = () => {
+        if (!isAnimationEnabledRef.current) {
+            isAnimationEnabledRef.current = true;
+        }
+        requestAnimationFrame(fire);
+        fire();
+    };
+    const getInstance = (instance: CreateTypes | null) => {
+        animationInstanceRef.current = instance;
+    };
+
+    const buttonVariants = {
+        initial: { scale: 1 },
+        animate: { scale: 1.2 },
+    };
+
+
+
+
+    const handleToggle = () => {
+        setIsPlaying((prev) => !prev);
+    };
+
+    // const handleSetGoalCompleted = () => {
+    //     const newGoalsCompleted = parseInt(goalInputValue, 10);
+    //     if (!isNaN(newGoalsCompleted)) {
+    //         setGoalsCompleted(newGoalsCompleted);
+    //     }
+    // };
+
+    const handleTimerSelection = (time: number) => {
+        setTimer(time * 60);
+        setSelectedTimer(time);
+
+    }
+
 
     const handleCompleteRound = () => {
         if (roundsCompleted === 3) {
@@ -211,10 +155,7 @@ const Timer: React.FC = () => {
         }
         setTimer(25 * 60);
         setIsPlaying(false);
-        setShowCongrats(true);
-        setTimeout(() => {
-            setShowCongrats(false);
-        }, 2000); // 축하 효과가 보여지는 시간 (2초)
+
     };
 
     const renderRoundCircles = () => {
@@ -233,41 +174,10 @@ const Timer: React.FC = () => {
         );
     };
 
-
-    const buttonVariants = {
-        initial: { scale: 1 },
-        animate: { scale: 1.2 },
-    };
-
     return (
 
         <div>
-            {showCongrats && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0 }}
-                >
-                    <svg
-                        width="100"
-                        height="100"
-                        viewBox="0 0 100 100"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            fill="yellow"
-                            strokeWidth="4"
-                            stroke="gold"
-                        />
-                        <text x="30" y="55" fontSize="28" fontWeight="bold">
-                            Congrats!
-                        </text>
-                    </svg>
-                </motion.div>
-            )}
+            <ReactCanvasConfetti refConfetti={getInstance} className="canvas" />
             <FormatTime timeInSeconds={timer} setIsPlaying={setIsPlaying} setTimer={setTimer} />
             <SlideBoxes
                 timerOptions={[15, 20, 25, 30, 35, 40, 45, 50]}
@@ -278,7 +188,7 @@ const Timer: React.FC = () => {
             <CountdownCircleTimerWrapper>
                 <CountdownCircleTimer
                     isPlaying={isPlaying}
-                    duration={Number(timer)}
+                    duration={Number(selectedTimer)}
                     colors={'#fff'}
                     trailColor="#FE5858"
                     strokeWidth={6}
@@ -329,8 +239,6 @@ const Timer: React.FC = () => {
                 <GoalWrapper>
                     <GoalInfo>
                         {goalsCompleted} / 4
-                        {/* <GoalInput value={goalInputValue} onChange={handleGoalInputChange} />
-                        <button >Set Goal Completed</button> */}
                     </GoalInfo>
                     <GoalText>GOAL</GoalText>
                 </GoalWrapper>
@@ -342,3 +250,5 @@ const Timer: React.FC = () => {
 };
 
 export default Timer;
+
+

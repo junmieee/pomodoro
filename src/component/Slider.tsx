@@ -68,7 +68,7 @@ const SlideBoxes = ({ timerOptions, selectedTimer, handleTimerSelection }) => {
                     top: 0,
                     bottom: 0,
                     left: 0,
-                    width: 40,
+                    width: 50,
                     pointerEvents: "none",
                     background: "linear-gradient(to left, rgba(255, 255, 255, 0), #FE5858",
                 }}
@@ -79,7 +79,7 @@ const SlideBoxes = ({ timerOptions, selectedTimer, handleTimerSelection }) => {
                     top: 0,
                     bottom: 0,
                     right: 0,
-                    width: 40,
+                    width: 50,
                     pointerEvents: "none",
                     background: "linear-gradient(to right, rgba(255, 255, 255, 0), #FE5858",
                 }}
