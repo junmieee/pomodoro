@@ -188,7 +188,7 @@ const Timer: React.FC = () => {
             <CountdownCircleTimerWrapper>
                 <CountdownCircleTimer
                     isPlaying={isPlaying}
-                    duration={Number(selectedTimer)}
+                    duration={Number(timer)}
                     colors={'#fff'}
                     trailColor="#FE5858"
                     strokeWidth={6}
